@@ -38,6 +38,7 @@ export default function HabitTracker() {
     const [newHabitName, setNewHabitName] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false); // Mobile 'Edit' toggle
 
     // View State: 'entry' | 'overview'
     const [viewMode, setViewMode] = useState('entry');
@@ -69,6 +70,8 @@ export default function HabitTracker() {
     }, []);
 
     const toggleHabit = (habitId) => {
+        if (isEditMode) return; // Disable toggling while editing
+
         const currentDayHabits = habits[today] || {};
         const newStatus = !currentDayHabits[habitId];
 
@@ -112,6 +115,7 @@ export default function HabitTracker() {
 
         setNewHabitName('');
         setIsAdding(false);
+        setIsEditMode(false);
     };
 
     const deleteHabit = (id) => {
@@ -180,20 +184,32 @@ export default function HabitTracker() {
 
     return (
         <div className="space-y-4">
-            {/* 1. iOS Segmented Control */}
-            <div className="bg-[#1C1C1E] p-1 rounded-xl flex mb-6">
-                <button
-                    onClick={() => setViewMode('entry')}
-                    className={`flex-1 py-1.5 rounded-[9px] text-[13px] font-semibold transition-all ${viewMode === 'entry' ? 'bg-[var(--card-dark)] text-white shadow-sm' : 'text-[#8E8E93]'}`}
-                >
-                    Checklist
-                </button>
-                <button
-                    onClick={() => setViewMode('overview')}
-                    className={`flex-1 py-1.5 rounded-[9px] text-[13px] font-semibold transition-all ${viewMode === 'overview' ? 'bg-[var(--card-dark)] text-white shadow-sm' : 'text-[#8E8E93]'}`}
-                >
-                    Overview
-                </button>
+            {/* 1. iOS Segmented Control & Edit Toggle */}
+            <div className="flex gap-3 mb-6">
+                <div className="bg-[#1C1C1E] p-1 rounded-xl flex flex-1">
+                    <button
+                        onClick={() => setViewMode('entry')}
+                        className={`flex-1 py-1.5 rounded-[9px] text-[13px] font-semibold transition-all ${viewMode === 'entry' ? 'bg-[var(--card-dark)] text-white shadow-sm' : 'text-[#8E8E93]'}`}
+                    >
+                        Checklist
+                    </button>
+                    <button
+                        onClick={() => setViewMode('overview')}
+                        className={`flex-1 py-1.5 rounded-[9px] text-[13px] font-semibold transition-all ${viewMode === 'overview' ? 'bg-[var(--card-dark)] text-white shadow-sm' : 'text-[#8E8E93]'}`}
+                    >
+                        Overview
+                    </button>
+                </div>
+
+                {/* Mobile Edit Toggle */}
+                {viewMode === 'entry' && !isAdding && habitConfig.length > 0 && (
+                    <button
+                        onClick={() => setIsEditMode(!isEditMode)}
+                        className={`px-4 py-1.5 rounded-xl text-[13px] font-semibold transition-all ${isEditMode ? 'bg-[#DEF254] text-black' : 'bg-[#1C1C1E] text-[#8E8E93]'}`}
+                    >
+                        {isEditMode ? 'Done' : 'Edit'}
+                    </button>
+                )}
             </div>
 
             {/* VIEW: ENTRY MODE */}
@@ -239,60 +255,70 @@ export default function HabitTracker() {
                             return (
                                 <div
                                     key={config.id}
-                                    className={`w-full flex items-center justify-between p-6 rounded-[20px] transition-all duration-200 mb-4 group relative ${isCompleted ? 'bg-transparent opacity-40' : 'bg-[var(--card-dark)] hover:bg-[var(--card-hover)]'}`}
+                                    className={`w-full flex items-center justify-between p-6 rounded-[20px] transition-all duration-200 mb-4 group relative ${isCompleted && !isEditMode ? 'bg-transparent opacity-40' : 'bg-[var(--card-dark)]'} ${!isEditMode && 'hover:bg-[var(--card-hover)]'}`}
                                 >
                                     {/* Main Click Area for Toggling */}
                                     <div
                                         onClick={() => toggleHabit(config.id)}
-                                        className="flex-1 flex items-center gap-4 cursor-pointer"
+                                        className={`flex-1 flex items-center gap-4 ${!isEditMode ? 'cursor-pointer' : ''}`}
                                     >
                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors bg-white/5`}>
-                                            <Icon size={22} className={isCompleted ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'} />
+                                            <Icon size={22} className={isCompleted && !isEditMode ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'} />
                                         </div>
 
                                         <div className="text-left">
                                             <div className="text-[16px] font-bold text-[var(--text-primary)]">
                                                 {config.label}
                                             </div>
-                                            <div className="flex items-center gap-2 mt-1.5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${isCompleted ? 'bg-[var(--primary)]' : 'bg-[var(--text-tertiary)]'}`}></div>
-                                                <span className={`text-xs font-medium text-[var(--text-tertiary)]`}>
-                                                    {isCompleted ? 'Completed' : 'Up next'}
-                                                </span>
-                                            </div>
+                                            {!isEditMode && (
+                                                <div className="flex items-center gap-2 mt-1.5">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${isCompleted ? 'bg-[var(--primary)]' : 'bg-[var(--text-tertiary)]'}`}></div>
+                                                    <span className={`text-xs font-medium text-[var(--text-tertiary)]`}>
+                                                        {isCompleted ? 'Completed' : 'Up next'}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons (Edit/Delete) - Reveal on Hover */}
+                                    {/* Action Buttons (Edit/Delete vs Checkmark) */}
                                     <div className="flex items-center gap-2">
-                                        {/* Toggle Checkmark */}
-                                        <div
-                                            onClick={() => toggleHabit(config.id)}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isCompleted
-                                                ? 'bg-[var(--primary)] text-black'
-                                                : 'bg-white/5 text-transparent group-hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <Check size={16} strokeWidth={4} />
-                                        </div>
 
-                                        {/* Edit Button */}
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); startEdit(config); }}
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-tertiary)] hover:text-white hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Edit"
-                                        >
-                                            <Pencil size={14} />
-                                        </button>
+                                        {/* Normal Mode: Checkmark */}
+                                        {!isEditMode && (
+                                            <div
+                                                onClick={() => toggleHabit(config.id)}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isCompleted
+                                                    ? 'bg-[var(--primary)] text-black'
+                                                    : 'bg-white/5 text-transparent active:bg-white/10'
+                                                    }`}
+                                            >
+                                                <Check size={16} strokeWidth={4} />
+                                            </div>
+                                        )}
 
-                                        {/* Delete Button */}
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); deleteHabit(config.id); }}
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--text-tertiary)] hover:text-[#FF453A] hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                        {/* Edit Mode: Action Buttons */}
+                                        {isEditMode && (
+                                            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4">
+                                                {/* Edit Button */}
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); startEdit(config); }}
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 text-white hover:bg-white/20 transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+
+                                                {/* Delete Button */}
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); deleteHabit(config.id); }}
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center bg-[#FF453A]/10 text-[#FF453A] hover:bg-[#FF453A]/20 transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -300,7 +326,7 @@ export default function HabitTracker() {
                     )}
 
                     {/* Ghost Add Button (Bottom) */}
-                    {!isAdding && (
+                    {!isAdding && !isEditMode && (
                         <button
                             onClick={() => setIsAdding(true)}
                             className="w-full py-4 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--primary)] transition-colors gap-2"

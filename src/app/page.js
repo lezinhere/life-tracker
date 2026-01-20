@@ -39,7 +39,7 @@ export default function Home() {
 
       {/* 2. PREMIUM LINE TABS (Navigation) */}
       <div className="px-8 mb-12 relative z-10">
-        <div className="flex gap-10">
+        <div className="flex justify-center gap-10">
 
           {/* Tab 1: Focus */}
           <button
