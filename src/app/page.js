@@ -23,7 +23,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-12">
           {/* Subtle Avatar */}
           <div className="w-10 h-10 rounded-full bg-[var(--card-dark)] overflow-hidden flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
-            <span className="text-white font-medium text-xs">LZ</span>
+            <User size={20} className="text-white opacity-80" />
           </div>
           {/* Subtle Menu */}
           <button className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-white transition-colors">
