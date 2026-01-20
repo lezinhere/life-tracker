@@ -34,13 +34,7 @@ export const DataManager = {
     setExpenses: (expenses) => DataManager.setData('expenses', expenses),
 
     // Default Daily Habits Configuration
-    getHabitConfig: () => DataManager.getData('habit-config', [
-        { id: 'swalath', label: 'Swalath (5 times)', icon: 'Moon' },
-        { id: 'workout', label: 'Workout', icon: 'Dumbbell' },
-        { id: 'diet', label: 'Diet Consistency', icon: 'Salad' },
-        { id: 'sleep', label: 'Good Sleep', icon: 'Bed' },
-        { id: 'water', label: 'Drink Water', icon: 'Droplets' },
-    ]),
+    getHabitConfig: () => DataManager.getData('habit-config', []),
     setHabitConfig: (config) => DataManager.setData('habit-config', config),
 
     // Custom Categories
